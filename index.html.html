@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MedSight Medical Equipment Trading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            dark: '#0b1220',     // near-black blue
+            navy: '#0f1b2d',     // navbar
+            slate: '#1b2436',    // panels
+            ink: '#0d1424',      // hero
+            line: '#26324a',     // borders
+            text: '#e6ebf5',     // light text
+            sub: '#b7c2d9'       // subtle
+          },
+          accent: {
+            green: '#20c997',    // buttons/highlights
+            lime: '#27d07d'
+          }
+        },
+        boxShadow: {
+          soft: '0 10px 30px rgba(0,0,0,0.35)'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  :root { color-scheme: dark; }
+  * { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  .menu-panel { opacity:0; transform: translateY(6px); pointer-events:none; transition: all .18s ease; }
+  .group:hover .menu-panel { opacity:1; transform: translateY(0); pointer-events:auto; }
+  .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); }
+</style>
+</head>
+
+<body class="bg-brand-dark text-brand-text">
+<!-- =================== AUTH SCREEN (full-page before site) =================== -->
+<section id="authScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-ink via-brand-navy to-brand-slate p-4">
+  <div class="w-full max-w-md">
+    <div class="glass rounded-2xl border border-brand-line shadow-soft p-8">
+      <div class="text-center mb-6">
+        <img src="MedSight_Logo.png" alt="MedSight Logo" class="h-16 inline-block mb-3" onerror="this.style.display='none'">
+        <h1 class="text-2xl font-extrabold">MedSight Portal</h1>
+        <p class="text-sm text-brand-sub">Please login or create an account to continue</p>
+      </div>
+
+      <div class="flex gap-2 mb-5">
+        <button id="tab-login" class="flex-1 py-2 rounded-lg font-semibold bg-accent-green text-black hover:brightness-110">Login</button>
+        <button id="tab-register" class="flex-1 py-2 rounded-lg font-semibold glass hover:bg-white/10">Register</button>
+      </div>
+
+      <!-- Login -->
+      <form id="loginForm" class="space-y-3" onsubmit="handleLogin(event)">
+        <input id="loginUser" type="text" placeholder="Username" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <input id="loginPass" type="password" placeholder="Password" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <button class="w-full bg-accent-green text-black py-2 rounded-lg font-semibold hover:brightness-110">Login</button>
+        <p id="loginErr" class="hidden text-red-400 text-sm">Invalid username or password.</p>
+      </form>
+
+      <!-- Register -->
+      <form id="registerForm" class="hidden space-y-3" onsubmit="handleRegister(event)">
+        <input id="regName" type="text" placeholder="Full Name" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <input id="regEmail" type="email" placeholder="Email Address" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <input id="regContact" type="text" placeholder="Contact Number" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <input id="regAddress" type="text" placeholder="Full Address" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <input id="regUser" type="text" placeholder="Create Username" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <input id="regPass" type="password" placeholder="Create Password" class="w-full px-4 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60" required>
+        <button class="w-full bg-accent-green text-black py-2 rounded-lg font-semibold hover:brightness-110">Create Account</button>
+        <p id="regErr" class="hidden text-red-400 text-sm">Username already exists. Please choose another.</p>
+        <p id="regOk" class="hidden text-emerald-400 text-sm">Account created! You can login now.</p>
+      </form>
+
+      <p class="mt-6 text-xs text-brand-sub text-center">© <span id="yr1"></span> MedSight. All rights reserved.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =================== MAIN SITE =================== -->
+<div id="site" class="hidden min-h-screen">
+  <!-- NAVBAR -->
+  <nav class="sticky top-0 z-40 border-b border-brand-line bg-brand-navy">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="h-16 flex items-center justify-between">
+        <!-- brand -->
+        <div class="flex items-center gap-3">
+          <img id="navLogo" src="MedSight_Logo.png" class="h-10 w-auto" alt="logo" onerror="this.style.display='none'">
+          <span class="font-extrabold text-xl tracking-wide">MedSight</span>
+        </div>
+
+        <!-- menu -->
+        <div class="hidden md:flex items-center gap-8">
+          <!-- products dropdown -->
+          <div class="relative group">
+            <button class="inline-flex items-center gap-2 font-semibold hover:text-accent-green">
+              Products
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/></svg>
+            </button>
+            <div class="menu-panel absolute left-0 mt-3 w-[50rem] bg-brand-slate rounded-xl border border-brand-line shadow-soft p-6 grid grid-cols-3 gap-6">
+              <div>
+                <h4 class="font-bold text-accent-green mb-2">Ophthalmology</h4>
+                <ul class="text-sm text-brand-sub list-disc ml-5 space-y-1">
+                  <li>Slit Lamp</li><li>Operating Microscope</li><li>Operating Bed</li><li>Photo disruptor</li><li>Photocoagulation</li><li>Fundus Camera</li><li>Biometry</li><li>Auto-Refractometer with Keratometry</li><li>Applanation Tonometer</li><li>Optical Coherence Tomography with Angiography</li><li>Air Puff Tonometer</li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="font-bold text-accent-green mb-2">Optometry</h4>
+                <ul class="text-sm text-brand-sub list-disc ml-5 space-y-1">
+                  <li>Auto-Refractometer</li><li>Phoropter Head</li><li>Trial Lens</li><li>Trial Frame</li><li>Visual Acuity Test</li><li>Snellen Chart</li><li>Refracting Chair and Stand</li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="font-bold text-accent-green mb-2">ENT</h4>
+                <ul class="text-sm text-brand-sub list-disc ml-5 space-y-1">
+                  <li>ENT Suction/Treatment Unit</li><li>Endoscopy System</li><li>Operating Microscope</li><li>ENT Chair</li><li>Binocular Scope</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <a href="#about" class="font-semibold hover:text-accent-green">About</a>
+          <a href="#contact" class="font-semibold hover:text-accent-green">Contact</a>
+        </div>
+
+        <!-- right -->
+        <div class="flex items-center gap-3">
+          <div id="userBadge" class="hidden md:block text-sm text-brand-sub"></div>
+          <button onclick="logout()" class="px-3 py-1.5 rounded-lg bg-accent-green text-black font-semibold hover:brightness-110">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="relative h-72 md:h-96 flex items-center justify-center text-center bg-gradient-to-br from-brand-ink via-brand-navy to-brand-slate">
+    <img id="headerImage" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-70 hidden" alt="Header">
+    <div class="relative z-10 px-6">
+      <h2 class="text-3xl md:text-5xl font-extrabold">World‑Class Eye Care Solutions</h2>
+      <p class="mt-3 text-brand-sub max-w-2xl mx-auto">Trusted equipment for Ophthalmology, Optometry, and ENT — with reliable after‑sales support.</p>
+    </div>
+  </section>
+
+  <!-- ADMIN TOOLS -->
+  <section id="adminTools" class="hidden px-4 py-8">
+    <div class="max-w-6xl mx-auto glass rounded-2xl border border-brand-line p-6">
+      <h3 class="text-xl font-bold mb-4 text-accent-green">Admin Controls</h3>
+      <div class="grid md:grid-cols-2 gap-4 items-center">
+        <input type="password" id="uploadPW" placeholder="Master Upload Password" class="px-3 py-2 rounded-lg bg-brand-slate border border-brand-line focus:outline-none focus:ring-2 focus:ring-accent-green/60">
+        <div class="flex flex-wrap gap-3">
+          <input type="file" id="headerUpload" accept="image/*" class="hidden" onchange="uploadHeader(event)">
+          <label for="headerUpload" class="px-4 py-2 rounded-lg bg-accent-green text-black font-semibold cursor-pointer hover:brightness-110">Upload Header</label>
+
+          <input type="file" id="logoUpload" accept="image/*" class="hidden" onchange="uploadLogo(event)">
+          <label for="logoUpload" class="px-4 py-2 rounded-lg bg-emerald-500 text-black font-semibold cursor-pointer hover:brightness-110">Upload Logo</label>
+
+          <button onclick="clearUploads()" class="px-4 py-2 rounded-lg bg-rose-500 text-white font-semibold hover:brightness-110">Clear Uploads</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="px-4 py-12">
+    <div class="max-w-5xl mx-auto">
+      <h3 class="text-2xl md:text-3xl font-extrabold text-accent-green mb-4">Company Background</h3>
+      <div class="glass rounded-2xl border border-brand-line p-6 leading-relaxed">
+        <p>
+          MedSight Medical Equipment Trading was officially established and registered with the Department of Trade and Industry (DTI) on March 6, 2025, under the sole proprietorship of Mr. Raymond V. Pascual. With over 28 years of industry experience, Mr. Pascual is a seasoned Sales and Technical Specialist in the medical equipment field—particularly in Ophthalmology and Optometry. From 1997 to early 2025, he collaborated with several global and local industry leaders, gaining extensive expertise in both new and pre-owned equipment, including diagnostics and surgical tools.
+        </p>
+        <p class="mt-3">
+          Driven by his passion for healthcare innovation and customer-focused service, Mr. Pascual founded MedSight to address key market gaps: the need for reliable, cost-effective equipment and a strong after-sales support system. Operating from its headquarters at 2nd Floor, Block 13, Lot 32, Ascension Avenue, Greater Lagro, District 5, Quezon City, the company was launched with the support of family and friends, along with a generous partnership from the property owner.
+        </p>
+        <p class="mt-3">
+          Today, MedSight stands as a growing force in the Philippine eye care equipment industry—committed to delivering world-class solutions with professionalism, purpose, and heart.
+        </p>
+        <p class="mt-4 font-semibold">The Founder – Mr. Raymond V. Pascual</p>
+        <ul class="list-disc ml-6 mt-1 space-y-1 text-brand-sub">
+          <li>Over 28 years of experience in the medical equipment industry</li>
+          <li>Sales and Technical Specialist (1997–2025)</li>
+          <li>Worked with major brands & industry leaders</li>
+          <li>Deep understanding of local market dynamics and healthcare needs</li>
+          <li>Proven track record in sales, servicing, and customer relations</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSION / VISION / VALUES -->
+  <section class="px-4 py-12 bg-brand-ink">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+      <div class="glass rounded-2xl border border-brand-line p-6">
+        <h4 class="text-2xl font-extrabold text-accent-green mb-3">Mission</h4>
+        <p class="text-brand-sub">To provide medical professionals, especially in the fields of ophthalmology and optometry, with high-quality, reliable diagnostic and surgical equipment, backed by fast, responsive, and customer-focused after-sales service.</p>
+      </div>
+      <div class="glass rounded-2xl border border-brand-line p-6">
+        <h4 class="text-2xl font-extrabold text-accent-green mb-3">Vision</h4>
+        <p class="text-brand-sub">To be recognized as a trusted and leading provider of eye care equipment solutions in the Philippines, known for our integrity, technical expertise, and unwavering commitment to service excellence—supporting clinics, hospitals, and specialists in delivering better patient outcomes.</p>
+      </div>
+    </div>
+    <div class="max-w-6xl mx-auto mt-8 glass rounded-2xl border border-brand-line p-6">
+      <h4 class="text-2xl font-extrabold text-accent-green mb-3">Core Values – “MEDSIGHT”</h4>
+      <div class="grid md:grid-cols-2 gap-6 text-brand-sub">
+        <ul class="list-disc ml-6 space-y-1">
+          <li><b>M – Meaningful Impact:</b> We empower professionals to serve better and improve lives.</li>
+          <li><b>E – Excellence:</b> Uncompromising commitment to quality and service.</li>
+          <li><b>D – Dedication:</b> Building long-term client relationships through trust and support.</li>
+          <li><b>S – Solutions-Oriented:</b> Customized equipment offerings to meet real-world needs.</li>
+        </ul>
+        <ul class="list-disc ml-6 space-y-1">
+          <li><b>I – Integrity:</b> Transparency, ethics, and trust in every transaction.</li>
+          <li><b>G – Growth and Innovation:</b> Keeping pace with global advancements in medical technology.</li>
+          <li><b>H – Human-Centered Values:</b> Respectful, empathetic, and focused on patient care.</li>
+          <li><b>T – Timely and Reliable Support:</b> Fast responses and dependable service.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- USED PRODUCTS (EENT) -->
+  <section class="px-4 py-12">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-2xl font-extrabold text-accent-green">EENT Used Products</h3>
+        <div id="adminUploadBar" class="hidden">
+          <input type="file" id="usedUpload" multiple accept="image/*,video/*" class="hidden" onchange="uploadUsed(event)">
+          <label for="usedUpload" class="px-4 py-2 rounded-lg bg-accent-green text-black font-semibold cursor-pointer hover:brightness-110">Upload Photos/Videos</label>
+        </div>
+      </div>
+      <div id="usedGallery" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="px-4 py-12 bg-brand-ink">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl border border-brand-line p-6">
+        <h4 class="text-2xl font-extrabold text-accent-green mb-3">Let’s Connect</h4>
+        <p class="text-brand-sub">Office Address: 2nd Floor, Block 13, Lot 32, Ascension Avenue, Greater Lagro, District 5, Quezon City</p>
+        <p class="text-brand-sub">Email: <a href="mailto:occuent@gmail.com" class="text-accent-green underline">occuent@gmail.com</a></p>
+        <p class="text-brand-sub">Contact Number: +63 968 880 1066</p>
+      </div>
+      <div class="glass rounded-2xl border border-brand-line p-6">
+        <h4 class="text-xl font-bold mb-2">Quick Message</h4>
+        <form onsubmit="event.preventDefault(); alert('Thanks! We have received your message.'); this.reset();">
+          <input type="text" placeholder="Your Name" class="w-full mb-2 px-3 py-2 rounded-lg bg-brand-slate border border-brand-line">
+          <input type="email" placeholder="Your Email" class="w-full mb-2 px-3 py-2 rounded-lg bg-brand-slate border border-brand-line">
+          <textarea placeholder="Message" rows="3" class="w-full mb-2 px-3 py-2 rounded-lg bg-brand-slate border border-brand-line"></textarea>
+          <button class="px-4 py-2 rounded-lg bg-accent-green text-black font-semibold hover:brightness-110">Send</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer class="py-6 text-center text-brand-sub border-t border-brand-line">
+    © <span id="yr2"></span> MedSight Medical Equipment Trading. All rights reserved.
+  </footer>
+</div>
+
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<script>
+// ================= CONFIG (EDIT THESE) =================
+const ADMIN_USERNAME = "admin";            // change
+const ADMIN_PASSWORD = "medsight2025";     // change
+const MASTER_PW      = "UploadSecret2025"; // change
+const ADMIN_EMAIL    = "occuent@gmail.com";
+
+// EmailJS (get free keys at emailjs.com)
+const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";
+const EMAILJS_SERVICE_ID  = "YOUR_SERVICE_ID";
+const EMAILJS_TEMPLATE_ID = "YOUR_ADMIN_TEMPLATE";         // email to admin
+const EMAILJS_VISITOR_TEMPLATE_ID = "YOUR_VISITOR_TEMPLATE"; // optional email to visitor
+
+if (window.emailjs) { emailjs.init(EMAILJS_PUBLIC_KEY); }
+
+// ================= STORAGE KEYS =================
+const LS_USERS    = "ms_users";
+const LS_LOGGED   = "ms_logged";
+const LS_USER     = "ms_user";
+const LS_HEADER   = "ms_header";
+const LS_LOGO     = "ms_logo";
+const LS_GALLERY  = "ms_gallery";
+
+function users(){ try { return JSON.parse(localStorage.getItem(LS_USERS)) || {}; } catch(e){ return {}; } }
+function saveUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); }
+function me(){ const u = localStorage.getItem(LS_USER); return u ? users()[u] : null; }
+
+// ================= AUTH TAB SWITCH =================
+const tabLogin = document.getElementById('tab-login');
+const tabReg   = document.getElementById('tab-register');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+tabLogin.addEventListener('click', ()=>{
+  tabLogin.className="flex-1 py-2 rounded-lg font-semibold bg-accent-green text-black hover:brightness-110";
+  tabReg.className="flex-1 py-2 rounded-lg font-semibold glass hover:bg-white/10";
+  loginForm.classList.remove('hidden'); registerForm.classList.add('hidden');
+});
+tabReg.addEventListener('click', ()=>{
+  tabReg.className="flex-1 py-2 rounded-lg font-semibold bg-accent-green text-black hover:brightness-110";
+  tabLogin.className="flex-1 py-2 rounded-lg font-semibold glass hover:bg-white/10";
+  registerForm.classList.remove('hidden'); loginForm.classList.add('hidden');
+});
+
+// ================= REGISTER =================
+function handleRegister(e){
+  e.preventDefault();
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const contact = document.getElementById('regContact').value.trim();
+  const address = document.getElementById('regAddress').value.trim();
+  const username = document.getElementById('regUser').value.trim();
+  const password = document.getElementById('regPass').value;
+
+  const u = users();
+  if(u[username]){ document.getElementById('regErr').classList.remove('hidden'); return; }
+  u[username] = { name, email, contact, address, username, password, createdAt: new Date().toISOString() };
+  saveUsers(u);
+  document.getElementById('regErr').classList.add('hidden');
+  document.getElementById('regOk').classList.remove('hidden');
+  setTimeout(()=>{ tabLogin.click(); }, 900);
+}
+
+// ================= LOGIN =================
+function handleLogin(e){
+  e.preventDefault();
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const u = users();
+
+  if(username === ADMIN_USERNAME && password === ADMIN_PASSWORD){
+    if(!u[ADMIN_USERNAME]){
+      u[ADMIN_USERNAME] = { name: "MedSight Admin", email: ADMIN_EMAIL, contact: "", address:"", username: ADMIN_USERNAME, password: ADMIN_PASSWORD };
+      saveUsers(u);
+    }
+    localStorage.setItem(LS_LOGGED, "1"); localStorage.setItem(LS_USER, ADMIN_USERNAME);
+    sendLoginEmails(u[ADMIN_USERNAME]); enterSite(); return;
+  }
+
+  const user = u[username];
+  if(!user || user.password !== password){ document.getElementById('loginErr').classList.remove('hidden'); return; }
+  document.getElementById('loginErr').classList.add('hidden');
+  localStorage.setItem(LS_LOGGED, "1"); localStorage.setItem(LS_USER, username);
+  sendLoginEmails(user); enterSite();
+}
+
+// ================= ENTER / EXIT =================
+function enterSite(){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('site').classList.remove('hidden');
+  document.getElementById('yr2').textContent = new Date().getFullYear();
+  const user = me();
+  if(user){ document.getElementById('userBadge').textContent = `Welcome, ${user.name} | ${user.email}`; }
+  const isAdmin = user && user.username === ADMIN_USERNAME;
+  document.getElementById('adminTools').classList.toggle('hidden', !isAdmin);
+  document.getElementById('adminUploadBar').classList.toggle('hidden', !isAdmin);
+  // load saved media
+  const h = localStorage.getItem(LS_HEADER);
+  if(h){ const img = document.getElementById('headerImage'); img.src = h; img.classList.remove('hidden'); }
+  const l = localStorage.getItem(LS_LOGO);
+  if(l){ document.getElementById('navLogo').src = l; }
+  const g = JSON.parse(localStorage.getItem(LS_GALLERY) || "[]");
+  const gal = document.getElementById('usedGallery'); gal.innerHTML = "";
+  g.forEach(src => gal.insertAdjacentHTML('beforeend', src.startsWith("data:image") ? `<img src="${src}" class="rounded-lg shadow">` : `<video src="${src}" controls class="rounded-lg shadow"></video>`));
+}
+function logout(){
+  localStorage.removeItem(LS_LOGGED); localStorage.removeItem(LS_USER);
+  document.getElementById('site').classList.add('hidden');
+  document.getElementById('authScreen').classList.remove('hidden');
+}
+
+// Auto open if logged
+document.getElementById('yr1').textContent = new Date().getFullYear();
+if(localStorage.getItem(LS_LOGGED) === "1" && localStorage.getItem(LS_USER)){ enterSite(); }
+
+// ================= EMAIL NOTIFY =================
+function sendLoginEmails(user){
+  try{
+    if(EMAILJS_PUBLIC_KEY!=="YOUR_PUBLIC_KEY" && EMAILJS_SERVICE_ID!=="YOUR_SERVICE_ID" && EMAILJS_TEMPLATE_ID!=="YOUR_ADMIN_TEMPLATE"){
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: ADMIN_EMAIL,
+        visitor_name: user.name,
+        visitor_email: user.email,
+        visitor_contact: user.contact || "",
+        visitor_address: user.address || "",
+        visitor_username: user.username,
+        login_time: new Date().toLocaleString()
+      });
+    }
+  } catch(e){ console.warn("Admin email skipped:", e); }
+
+  try{
+    if(EMAILJS_PUBLIC_KEY!=="YOUR_PUBLIC_KEY" && EMAILJS_SERVICE_ID!=="YOUR_SERVICE_ID" && EMAILJS_VISITOR_TEMPLATE_ID!=="YOUR_VISITOR_TEMPLATE"){
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_VISITOR_TEMPLATE_ID, {
+        to_email: user.email,
+        visitor_name: user.name
+      });
+    }
+  } catch(e){ console.warn("Visitor email skipped:", e); }
+}
+
+// ================= UPLOADS (Admin + Master PW) =================
+function checkPW(){ return document.getElementById('uploadPW').value === MASTER_PW; }
+
+function uploadHeader(ev){
+  if(!checkPW()) { alert("Wrong master password"); ev.target.value=""; return; }
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = (e)=>{ localStorage.setItem(LS_HEADER, e.target.result); const img = document.getElementById('headerImage'); img.src = e.target.result; img.classList.remove('hidden'); };
+  r.readAsDataURL(f);
+}
+function uploadLogo(ev){
+  if(!checkPW()) { alert("Wrong master password"); ev.target.value=""; return; }
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = (e)=>{ localStorage.setItem(LS_LOGO, e.target.result); document.getElementById('navLogo').src = e.target.result; };
+  r.readAsDataURL(f);
+}
+function clearUploads(){
+  if(!checkPW()) { alert("Wrong master password"); return; }
+  localStorage.removeItem(LS_HEADER); localStorage.removeItem(LS_LOGO); localStorage.removeItem(LS_GALLERY);
+  document.getElementById('headerImage').classList.add('hidden');
+  document.getElementById('usedGallery').innerHTML = "";
+  alert("Cleared header, logo and gallery.");
+}
+function uploadUsed(ev){
+  const user = me(); const isAdmin = user && user.username === ADMIN_USERNAME;
+  if(!isAdmin){ alert("Only admin can upload used products."); ev.target.value=""; return; }
+  if(!checkPW()) { alert("Wrong master password"); ev.target.value=""; return; }
+  const files = Array.from(ev.target.files || []);
+  const gal = document.getElementById('usedGallery');
+  const stored = JSON.parse(localStorage.getItem(LS_GALLERY) || "[]");
+  files.forEach(file => {
+    const r = new FileReader();
+    r.onload = e => {
+      const src = e.target.result; stored.push(src);
+      gal.insertAdjacentHTML('beforeend', file.type.startsWith("image") ? `<img src="${src}" class="rounded-lg shadow">` : `<video src="${src}" controls class="rounded-lg shadow"></video>`);
+      localStorage.setItem(LS_GALLERY, JSON.stringify(stored));
+    };
+    r.readAsDataURL(file);
+  });
+}
+</script>
+</body>
+</html>
